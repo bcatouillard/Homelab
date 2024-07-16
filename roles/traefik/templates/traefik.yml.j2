@@ -1,0 +1,40 @@
+---
+global:
+  sendAnonymousUsage: false
+  checkNewVersion: false
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  filePath: "/var/log/traefik.log"
+  format: common
+  level: "debug"
+
+providers:
+  file:
+    directory: "/etc/traefik/dynamic"
+    watch: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certResolver: myresolver
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: catouillard.benjamin@gmail.com
+      storage: acme.json
+      httpChallenge:
+        entryPoint: web
+
+serversTransport:
+  rootCAs:
+    - /etc/traefik/traefik.crt
+    - /etc/traefik/pve-root-ca.pem

@@ -1,0 +1,83 @@
+---
+- name: Install Traefik
+  hosts: bounces
+  roles:
+    - role: traefik
+      vars:
+        traefik_version: 2.11.0
+        traefik_log_level: "debug"
+        traefik_dynamics:
+          - filename: "proxmox.yml"
+            content:
+              http:
+                middlewares:
+                  https-redirect:
+                    redirectScheme:
+                      scheme: https
+                      permanent: true
+                  test-ipallow:
+                    ipAllowList:
+                      sourceRange:
+                        [127.0.0.1/32, 192.168.20.0/24, 192.168.1.0/24]
+                routers:
+                  my-secure-router:
+                    entryPoints: [websecure]
+                    middlewares: [test-ipallow, https-redirect]
+                    rule: "Host(`proxmox.bcatouillard.local`) && PathPrefix(`/`)"
+                    service: proxmox
+                    tls: {}
+                services:
+                  proxmox:
+                    loadBalancer:
+                      serversTransport: customTransport
+                      servers:
+                        - url: "https://192.168.20.16:8006"
+                serversTransports:
+                  customTransport:
+                    insecureSkipVerify: true
+          - filename: "grafana.yml"
+            content:
+              http:
+                middlewares:
+                  test-ipallow:
+                    ipAllowList:
+                      sourceRange:
+                        [127.0.0.1/32, 192.168.20.0/24, 192.168.1.0/24]
+                routers:
+                  my-grafana-router:
+                    entryPoints: [web]
+                    middlewares: [test-ipallow]
+                    rule: "Host(`grafana.bcatouillard.local`) && PathPrefix(`/`)"
+                    service: grafana
+                services:
+                  grafana:
+                    loadBalancer:
+                      serversTransport: customTransport
+                      servers:
+                        - { url: "http://192.168.20.18:3000" }
+                serversTransports:
+                  customTransport:
+                    insecureSkipVerify: true
+          - filename: "influxdb.yml"
+            content:
+              http:
+                middlewares:
+                  test-ipallow:
+                    ipAllowList:
+                      sourceRange:
+                        [127.0.0.1/32, 192.168.20.0/24, 192.168.1.0/24]
+                routers:
+                  my-influx-router:
+                    entryPoints: [web]
+                    middlewares: [test-ipallow]
+                    rule: "Host(`influx.bcatouillard.local`) && PathPrefix(`/`)"
+                    service: influxdb
+                services:
+                  influxdb:
+                    loadBalancer:
+                      serversTransport: customTransport
+                      servers:
+                        - { url: "http://192.168.20.17:8086" }
+                serversTransports:
+                  customTransport:
+                    insecureSkipVerify: true

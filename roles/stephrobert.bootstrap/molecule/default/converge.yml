@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include stephrobert.init.bootstrap
+      ansible.builtin.include_role:
+        name: ansible-role-bootstrap

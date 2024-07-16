@@ -1,0 +1,6 @@
+*.crt
+*.key
+*.pem
+.vscode
+.DS_Store
+roles/*.md

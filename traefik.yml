@@ -81,3 +81,26 @@
                 serversTransports:
                   customTransport:
                     insecureSkipVerify: true
+          - filename: "vault.yml"
+            content:
+              http:
+                middlewares:
+                  test-ipallow:
+                    ipAllowList:
+                      sourceRange:
+                        [127.0.0.1/32, 192.168.20.0/24, 192.168.1.0/24]
+                routers:
+                  my-vault-router:
+                    entryPoints: [web]
+                    middlewares: [test-ipallow]
+                    rule: "Host(`vault.bcatouillard.local`) && PathPrefix(`/`)"
+                    service: vault
+                services:
+                  vault:
+                    loadBalancer:
+                      serversTransport: customTransport
+                      servers:
+                        - { url: "http://192.168.20.19:8200" }
+                serversTransports:
+                  customTransport:
+                    insecureSkipVerify: true
